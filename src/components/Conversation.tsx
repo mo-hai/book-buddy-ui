@@ -18,6 +18,7 @@ export function Conversation({ context }: ConversationProps) {
   const [apiKey, setApiKey] = useState('');
   
   const conversation = useConversation({
+    apiKey: apiKey, // Add the API key to the conversation configuration
     onConnect: () => {
       console.log('Connected to agent');
       toast({ title: "Connected to agent", description: "You can start speaking now" });
