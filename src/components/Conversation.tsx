@@ -47,6 +47,10 @@ export function Conversation({ context }: ConversationProps) {
         duration: 5000
       });
     },
+    // Add reconnection settings
+    reconnect: true,
+    reconnectAttempts: 5,
+    reconnectDelay: 1000,
   });
 
   const startConversation = useCallback(async () => {
@@ -73,6 +77,12 @@ export function Conversation({ context }: ConversationProps) {
             prompt: {
               prompt: `You are an AI assistant helping with a book. Here's the current context from the book: ${context || 'No context provided'}. Please use this context to provide more relevant answers.`
             }
+          },
+          // Add WebSocket configuration
+          websocket: {
+            keepAlive: true,
+            keepAliveInterval: 30000, // 30 seconds
+            reconnectOnClose: true,
           }
         }
       });
