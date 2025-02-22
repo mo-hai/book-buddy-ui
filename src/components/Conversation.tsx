@@ -15,19 +15,33 @@ interface ConversationProps {
 export function Conversation({ context }: ConversationProps) {
   const { toast } = useToast();
   const conversation = useConversation({
-    onConnect: () => toast({ title: "Connected to agent", description: "You can start speaking now" }),
-    onDisconnect: () => toast({ title: "Disconnected from agent" }),
-    onMessage: (message) => console.log('Message:', message),
-    onError: (error) => toast({ 
-      title: "Error", 
-      description: error.message, 
-      variant: "destructive" 
-    }),
+    onConnect: () => {
+      console.log('Connected to agent');
+      toast({ title: "Connected to agent", description: "You can start speaking now" });
+    },
+    onDisconnect: () => {
+      console.log('Disconnected from agent');
+      toast({ title: "Disconnected from agent" });
+    },
+    onMessage: (message) => {
+      console.log('Message:', message);
+    },
+    onError: (error) => {
+      console.error('Error:', error);
+      toast({ 
+        title: "Error", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    },
   });
 
   const startConversation = useCallback(async () => {
     try {
+      console.log('Requesting microphone access...');
       await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      console.log('Starting conversation session...');
       await conversation.startSession({
         agentId: 'YOUR_AGENT_ID', // Replace with your agent ID
         overrides: {
@@ -39,6 +53,7 @@ export function Conversation({ context }: ConversationProps) {
         }
       });
     } catch (error) {
+      console.error('Start conversation error:', error);
       toast({
         title: "Error",
         description: "Failed to start conversation. Please make sure you have a working microphone.",
@@ -48,6 +63,7 @@ export function Conversation({ context }: ConversationProps) {
   }, [conversation, context, toast]);
 
   const stopConversation = useCallback(async () => {
+    console.log('Stopping conversation session...');
     await conversation.endSession();
   }, [conversation]);
 
