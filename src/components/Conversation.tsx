@@ -18,7 +18,6 @@ export function Conversation({ context }: ConversationProps) {
   const [apiKey, setApiKey] = useState('');
   
   const conversation = useConversation({
-    apiKey: apiKey, // Add the API key to the conversation configuration
     onConnect: () => {
       console.log('Connected to agent');
       toast({ title: "Connected to agent", description: "You can start speaking now" });
@@ -57,6 +56,7 @@ export function Conversation({ context }: ConversationProps) {
       console.log('Starting conversation session...');
       await conversation.startSession({
         agentId: 'kfjoekdTlZZquOK2LEot',
+        apiKey: apiKey,  // Pass the API key here instead
         overrides: {
           agent: {
             prompt: {
@@ -69,7 +69,7 @@ export function Conversation({ context }: ConversationProps) {
       console.error('Start conversation error:', error);
       toast({
         title: "Error",
-        description: "Failed to start conversation. Please make sure you have a working microphone.",
+        description: error instanceof Error ? error.message : "Failed to start conversation. Please make sure you have a working microphone.",
         variant: "destructive"
       });
     }
