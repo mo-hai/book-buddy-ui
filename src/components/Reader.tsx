@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
 import { Card } from './ui/card';
+import { cn } from '@/lib/utils';
 
 interface ReaderProps {
   text: string;
