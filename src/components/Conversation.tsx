@@ -2,11 +2,12 @@
 'use client';
 
 import { useConversation } from '@11labs/react';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { MessageSquare, Mic, MicOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from './ui/input';
 
 interface ConversationProps {
   context?: string;
@@ -14,6 +15,8 @@ interface ConversationProps {
 
 export function Conversation({ context }: ConversationProps) {
   const { toast } = useToast();
+  const [apiKey, setApiKey] = useState('');
+  
   const conversation = useConversation({
     onConnect: () => {
       console.log('Connected to agent');
@@ -38,6 +41,15 @@ export function Conversation({ context }: ConversationProps) {
 
   const startConversation = useCallback(async () => {
     try {
+      if (!apiKey) {
+        toast({
+          title: "Error",
+          description: "Please enter your ElevenLabs API key",
+          variant: "destructive"
+        });
+        return;
+      }
+
       console.log('Requesting microphone access...');
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
@@ -60,7 +72,7 @@ export function Conversation({ context }: ConversationProps) {
         variant: "destructive"
       });
     }
-  }, [conversation, context, toast]);
+  }, [conversation, context, toast, apiKey]);
 
   const stopConversation = useCallback(async () => {
     console.log('Stopping conversation session...');
@@ -70,25 +82,34 @@ export function Conversation({ context }: ConversationProps) {
   return (
     <Card className="p-6 glass-panel">
       <div className="flex flex-col gap-6">
-        <div className="flex justify-center gap-4">
-          <Button
-            onClick={startConversation}
-            disabled={conversation.status === 'connected'}
-            variant="default"
-            className="w-40"
-          >
-            <Mic className="mr-2 h-4 w-4" />
-            Start
-          </Button>
-          <Button
-            onClick={stopConversation}
-            disabled={conversation.status !== 'connected'}
-            variant="destructive"
-            className="w-40"
-          >
-            <MicOff className="mr-2 h-4 w-4" />
-            Stop
-          </Button>
+        <div className="flex flex-col gap-4">
+          <Input
+            type="password"
+            placeholder="Enter your ElevenLabs API key"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            className="w-full"
+          />
+          <div className="flex justify-center gap-4">
+            <Button
+              onClick={startConversation}
+              disabled={conversation.status === 'connected'}
+              variant="default"
+              className="w-40"
+            >
+              <Mic className="mr-2 h-4 w-4" />
+              Start
+            </Button>
+            <Button
+              onClick={stopConversation}
+              disabled={conversation.status !== 'connected'}
+              variant="destructive"
+              className="w-40"
+            >
+              <MicOff className="mr-2 h-4 w-4" />
+              Stop
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col items-center gap-2 text-sm">
