@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { Reader } from '@/components/Reader';
+import { Conversation } from '@/components/Conversation';
 
 const Index = () => {
   const [bookText, setBookText] = useState<string>('');
@@ -11,7 +12,6 @@ const Index = () => {
   };
 
   const handleAskQuestion = (context: string) => {
-    // Will implement AI Q&A functionality later
     console.log('Question about context:', context);
   };
 
@@ -22,8 +22,13 @@ const Index = () => {
       {!bookText ? (
         <FileUpload onFileAccepted={handleFileAccepted} />
       ) : (
-        <div className="h-[calc(100vh-12rem)]">
-          <Reader text={bookText} onAskQuestion={handleAskQuestion} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
+          <div className="lg:col-span-2">
+            <Reader text={bookText} onAskQuestion={handleAskQuestion} />
+          </div>
+          <div className="lg:col-span-1">
+            <Conversation />
+          </div>
         </div>
       )}
     </div>
