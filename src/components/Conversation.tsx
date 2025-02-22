@@ -43,7 +43,7 @@ export function Conversation({ context }: ConversationProps) {
       
       console.log('Starting conversation session...');
       await conversation.startSession({
-        agentId: 'YOUR_AGENT_ID', // Replace with your agent ID
+        agentId: 'kfjoekdTlZZquOK2LEot',
         overrides: {
           agent: {
             prompt: {
