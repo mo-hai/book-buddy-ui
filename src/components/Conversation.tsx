@@ -19,33 +19,44 @@ export function Conversation({ context }: ConversationProps) {
   
   const conversation = useConversation({
     onConnect: () => {
-      console.log('Connected to agent');
-      toast({ title: "Connected to agent", description: "You can start speaking now" });
+      console.log('Connected to agent - WebSocket connection established');
+      toast({ 
+        title: "Connected to agent", 
+        description: "You can start speaking now",
+        duration: 5000
+      });
     },
     onDisconnect: () => {
-      console.log('Disconnected from agent');
-      toast({ title: "Disconnected from agent" });
+      console.log('Disconnected from agent - WebSocket connection closed');
+      toast({ 
+        title: "Disconnected from agent",
+        description: "The connection to the agent was closed. Try reconnecting.",
+        variant: "destructive",
+        duration: 5000
+      });
     },
     onMessage: (message) => {
-      console.log('Message:', message);
+      console.log('Received message from agent:', message);
     },
     onError: (error) => {
-      console.error('Error:', error);
+      console.error('Agent error:', error);
       toast({ 
         title: "Error", 
         description: error.message, 
-        variant: "destructive" 
+        variant: "destructive",
+        duration: 5000
       });
     },
   });
 
   const startConversation = useCallback(async () => {
     try {
-      if (!apiKey) {
+      if (!apiKey || apiKey.trim().length === 0) {
         toast({
           title: "Error",
           description: "Please enter your ElevenLabs API key",
-          variant: "destructive"
+          variant: "destructive",
+          duration: 5000
         });
         return;
       }
@@ -53,10 +64,10 @@ export function Conversation({ context }: ConversationProps) {
       console.log('Requesting microphone access...');
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      console.log('Starting conversation session...');
+      console.log('Starting conversation session with agent ID: kfjoekdTlZZquOK2LEot');
       await conversation.startSession({
         agentId: 'kfjoekdTlZZquOK2LEot',
-        apiKey: apiKey,  // Pass the API key here instead
+        apiKey: apiKey.trim(),
         overrides: {
           agent: {
             prompt: {
@@ -65,20 +76,46 @@ export function Conversation({ context }: ConversationProps) {
           }
         }
       });
+
+      console.log('Session started successfully');
     } catch (error) {
       console.error('Start conversation error:', error);
+      let errorMessage = "Failed to start conversation.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('permission')) {
+          errorMessage = "Microphone access denied. Please allow microphone access and try again.";
+        } else if (error.message.includes('API key')) {
+          errorMessage = "Invalid API key. Please check your ElevenLabs API key and try again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to start conversation. Please make sure you have a working microphone.",
-        variant: "destructive"
+        description: errorMessage,
+        variant: "destructive",
+        duration: 5000
       });
     }
   }, [conversation, context, toast, apiKey]);
 
   const stopConversation = useCallback(async () => {
-    console.log('Stopping conversation session...');
-    await conversation.endSession();
-  }, [conversation]);
+    try {
+      console.log('Stopping conversation session...');
+      await conversation.endSession();
+      console.log('Session stopped successfully');
+    } catch (error) {
+      console.error('Stop conversation error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to stop conversation properly",
+        variant: "destructive",
+        duration: 5000
+      });
+    }
+  }, [conversation, toast]);
 
   return (
     <Card className="p-6 glass-panel">
