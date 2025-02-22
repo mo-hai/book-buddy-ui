@@ -6,13 +6,14 @@ import { Conversation } from '@/components/Conversation';
 
 const Index = () => {
   const [bookText, setBookText] = useState<string>('');
+  const [selectedContext, setSelectedContext] = useState<string>('');
 
   const handleFileAccepted = (text: string) => {
     setBookText(text);
   };
 
   const handleAskQuestion = (context: string) => {
-    console.log('Question about context:', context);
+    setSelectedContext(context);
   };
 
   return (
@@ -27,7 +28,7 @@ const Index = () => {
             <Reader text={bookText} onAskQuestion={handleAskQuestion} />
           </div>
           <div className="lg:col-span-1">
-            <Conversation />
+            <Conversation context={selectedContext} />
           </div>
         </div>
       )}

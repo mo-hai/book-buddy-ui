@@ -8,7 +8,11 @@ import { Card } from './ui/card';
 import { MessageSquare, Mic, MicOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export function Conversation() {
+interface ConversationProps {
+  context?: string;
+}
+
+export function Conversation({ context }: ConversationProps) {
   const { toast } = useToast();
   const conversation = useConversation({
     onConnect: () => toast({ title: "Connected to agent", description: "You can start speaking now" }),
@@ -26,6 +30,13 @@ export function Conversation() {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       await conversation.startSession({
         agentId: 'YOUR_AGENT_ID', // Replace with your agent ID
+        overrides: {
+          agent: {
+            prompt: {
+              prompt: `You are an AI assistant helping with a book. Here's the current context from the book: ${context || 'No context provided'}. Please use this context to provide more relevant answers.`
+            }
+          }
+        }
       });
     } catch (error) {
       toast({
@@ -34,7 +45,7 @@ export function Conversation() {
         variant: "destructive"
       });
     }
-  }, [conversation, toast]);
+  }, [conversation, context, toast]);
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();
