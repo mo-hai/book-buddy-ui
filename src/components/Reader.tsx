@@ -17,19 +17,63 @@ export const Reader = ({ text, onAskQuestion }: ReaderProps) => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [words, setWords] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const speechRef = useRef<SpeechSynthesis | null>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     if (text) {
       setWords(text.split(/\s+/));
     }
+    
+    // Initialize speech synthesis
+    speechRef.current = window.speechSynthesis;
+    return () => {
+      if (speechRef.current) {
+        speechRef.current.cancel();
+      }
+    };
   }, [text]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      startReading();
+    } else {
+      stopReading();
+    }
+  }, [isPlaying, currentWordIndex]);
+
+  const startReading = () => {
+    if (!speechRef.current || words.length === 0) return;
+
+    speechRef.current.cancel();
+    const utterance = new SpeechSynthesisUtterance(words[currentWordIndex]);
+    utteranceRef.current = utterance;
+
+    utterance.onend = () => {
+      if (currentWordIndex < words.length - 1) {
+        setCurrentWordIndex(prev => prev + 1);
+      } else {
+        setIsPlaying(false);
+      }
+    };
+
+    speechRef.current.speak(utterance);
+  };
+
+  const stopReading = () => {
+    if (speechRef.current) {
+      speechRef.current.cancel();
+    }
+  };
 
   const togglePlayback = () => {
     setIsPlaying(!isPlaying);
   };
 
   const replayWord = () => {
-    // Implementation for replaying current word
+    if (currentWordIndex > 0) {
+      setCurrentWordIndex(currentWordIndex - 1);
+    }
   };
 
   const getCurrentContext = () => {
@@ -37,6 +81,18 @@ export const Reader = ({ text, onAskQuestion }: ReaderProps) => {
     const contextEnd = Math.min(words.length, currentWordIndex + 50);
     return words.slice(contextStart, contextEnd).join(' ');
   };
+
+  useEffect(() => {
+    if (scrollRef.current && words.length > 0) {
+      const wordElements = scrollRef.current.getElementsByTagName('span');
+      if (wordElements[currentWordIndex]) {
+        wordElements[currentWordIndex].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+  }, [currentWordIndex]);
 
   return (
     <div className="flex flex-col h-full gap-6">
@@ -69,7 +125,12 @@ export const Reader = ({ text, onAskQuestion }: ReaderProps) => {
             value={[currentWordIndex]}
             max={words.length - 1}
             step={1}
-            onValueChange={(value) => setCurrentWordIndex(value[0])}
+            onValueChange={(value) => {
+              setCurrentWordIndex(value[0]);
+              if (isPlaying) {
+                startReading();
+              }
+            }}
           />
           <Button
             variant="outline"
@@ -88,9 +149,15 @@ export const Reader = ({ text, onAskQuestion }: ReaderProps) => {
             <span
               key={index}
               className={cn(
-                'inline-block',
+                'inline-block cursor-pointer px-0.5 rounded transition-colors duration-200',
                 currentWordIndex === index && 'highlighted-word'
               )}
+              onClick={() => {
+                setCurrentWordIndex(index);
+                if (isPlaying) {
+                  startReading();
+                }
+              }}
             >
               {word}{' '}
             </span>
